@@ -86,6 +86,10 @@
     }
 
     updateTimer();
+  if (window.location.pathname.endsWith("index.html") || window.location.pathname === "/") {
+    window.location.href = "lobby.html";
+  }
+
   </script>
 </body>
 </html>
