@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Status Serwera Minecraft</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d0d0d; color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 30px
+ 15px; min-height: 100vh;
+    }
+    h1 { font-size: 2rem; color: #00ffcc; margin-bottom: 20px;
+      text-shadow: 0 0 10px #00ffcc; text-align: center;
+    }
+    #status { width: 100%; max-width: 500px;
+      display: flex; flex-direction: column; gap: 15px;
+    }
+    .card {
+      background: #1a1a1a;
+      border: 2px solid #00ffcc;
+      box-shadow: 0 0 15px rgba(0,255,204,0.1);
+      border-radius: 16px; padding: 15px;
+      word-break: break-word;
+    }
+    .label { font-size: .85rem; color: #888; }
+    .value { font-size: 1.1rem; color: #fff; margin-top: 5px; }
+    .online { color: #00ff00; font-weight: bold; }
+    .offline { color: #ff3333; font-weight: bold; }
+    .favicon { height: 32px; width: 32px; vertical-align: middle; margin-right: 10px; }
+    #languageToggle { margin-top: 15px; cursor: pointer; color: #00ccff; text-decoration: underline; }
+    #lastUpdated { font-size: .8rem; color: #777; margin-top: 10px; text-align: center; }
+    @media (max-width:600px) {
+      body { padding: 20px 10px; }
+      h1 { font-size:1.6rem; }
+      .value { font-size:1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1 id="pageTitle">Status Serwera Minecraft</h1>
+  <div id="status">🔄 Ładowanie danych...</div>
+  <div id="lastUpdated"></div>
+  <div id="languageToggle">🌍 Przełącz na English</div>
+
+  <script>
+    let lang = "pl";
+    const translations = {
+      pl: {
+        title: "Status Serwera Minecraft",
+        loading: "🔄 Ładowanie danych...",
+        online: "🟢 Online",
+        offline: "🔴 Offline",
+        players: "🧍 Gracze online",
+        motd: "MOTD (opis serwera)",
+        version: "🔧 Wersja serwera",
+        ip: "🌐 Adres IP",
+        favicon: "Ikona serwera",
+        playerList: "🎮 Lista graczy",
+        error: "❌ Błąd API:"
+      },
+      en: {
+        title: "Minecraft Server Status",
+        loading: "🔄 Loading data...",
+        online: "🟢 Online",
+        offline: "🔴 Offline",
+        players: "🧍 Players online",
+        motd: "MOTD (server description)",
+        version: "🔧 Server version",
+        ip: "🌐 Server IP",
+        favicon: "Server icon",
+        playerList: "🎮 Player list",
+        error: "❌ API Error:"
+      }
+    };
+    function translate(k) { return translations[lang][k]; }
+
+    document.getElementById("languageToggle").addEventListener("click", () => {
+      lang = lang === "pl" ? "en" : "pl";
+      document.getElementById("languageToggle").textContent = lang === "pl" ?
+        "🌍 Przełącz na English" : "🌍 Switch to Polish";
+      document.getElementById("pageTitle").textContent = translate("title");
+      updateStatus();
+    });
+
+    async function updateStatus() {
+      const ipPort = "s32.pixelhost.pl:27046";
+      const apiURL = `https://api.mcstatus.io/v2/status/java/${ipPort}`;
+      const proxy = `https://corsproxy.io/?${apiURL}`;
+      const statusDiv = document.getElementById("status");
+      const lastUpdated = document.getElementById("lastUpdated");
+      statusDiv.innerHTML = translate("loading");
+
+      try {
+        const res = await fetch(proxy);
+        if (!res.ok) throw new Error(res.status + " " + res.statusText);
+        const data = await res.json();
+        const now = new Date(), timeStr = now.toLocaleTimeString();
+
+        if (data.online) {
+          let playerListHTML = "";
+          if (data.players.list?.length > 0) {
+            playerListHTML = `
+              <div class="card">
+                <div class="label">${translate("playerList")}:</div>
+                <div class="value">${data.players.list.join(", ")}</div>
+              </div>`;
+          }
+          statusDiv.innerHTML = `
+            <div class="card"><div class="label">${translate("online")}:</div><div class="value online">${translate("online")}</div></div>
+            <div class="card"><div class="label">${translate("players")}:</div><div class="value">${data.players.online} / ${data.players.max}</div></div>
+            <div class="card"><div class="label">${translate("motd")}:</div><div class="value">${data.motd.clean}</div></div>
+            <div class="card"><div class="label">${translate("version")}:</div><div class="value">${data.version.name}</div></div>
+            <div class="card"><div class="label">${translate("ip")}:</div><div class="value">${data.host}:${data.port}</div></div>
+            ${data.icon ? `<div class="card"><div class="label">${translate("favicon")}:</div><div class="value"><img class="favicon" src="${data.icon}" alt="Favicon" /></div></div>` : ''}
+            ${playerListHTML}
+          `;
+        } else {
+          statusDiv.innerHTML = `
+            <div class="card"><div class="label">${translate("online")}:</div><div class="value offline">${translate("offline")}</div></div>`;
+        }
+        lastUpdated.textContent = `⏱ ${lang === "pl" ? "Ostatnie odświeżenie:" : "Last updated:"} ${timeStr}`;
+
+      } catch (e) {
+        console.error(e);
+        statusDiv.innerHTML = `
+          <div class="card">
+            <div class="label">${translate("error")}</div>
+            <div class="value offline">${e.message}</div>
+          </div>`;
+      }
+    }
+
+    updateStatus();
+    setInterval(updateStatus, 60000);
+  </script>
+
+</body>
+</html>

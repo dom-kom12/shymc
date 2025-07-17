@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>🚫 Błąd połączenia – ShyMC</title>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    h2 {
+      font-size: 3rem;
+      color: #0ff;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      color: red;
+      margin: 1rem 0;
+    }
+    .countdown {
+      
+      font-size: 2rem;
+      color: #0ff;
+      margin-top: 2rem;
+    }
+    .btn-home {
+      margin-top: 3rem;
+      display: inline-block;
+      padding: 1rem 2rem;
+      background: #0ff;
+      color: #000;
+      font-weight: 700;
+      border-radius: 10px;
+      text-decoration: none;
+      box-shadow: 0 0 15px #0ff;
+      transition: .3s;
+    }
+    .btn-home:hover {
+      background: #00cccc;
+    }
+  </style>
+</head>
+<body>
+    <audio autoplay loop hidden id="bg-music">
+    <source src="Shy.mp3" type="audio/mpeg">
+    Twój browser nie wspiera audio.
+  </audio>
+  <h2>🛠️ Serwer ShyMC jest tymczasowo niedostępny</h2>
+  <h1>Powód: Budowa Servera</h1>
+
+  <div class="countdown">
+    ⏳ Serwer wróci za (HH-MM-SS) <span id="timer">--:--:--</span>
+  </div>
+
+  <a class="btn-home" href="index.html">🔙 Powrót na stronę główną</a>
+  <div>
+    <a class="btn-home" href="https://whatsapp.com/channel/0029Vb6P89x0LKZHhue6yi41">Wszelkie Informacje</a>
+  </div>
+  <script>
+    // 🔧 TUTAJ USTAW DATĘ KOŃCOWĄ (rok, miesiąc-1, dzień, godzina, minuta, sekunda)
+    const serverBackOnline = new Date(2025, 6, 16, 14, 15, 0); // 12 lipca 2025, 20:00
+
+    const timerEl = document.getElementById('timer');
+
+    function updateTimer() {
+      const now = new Date();
+      let secondsLeft = Math.floor((serverBackOnline - now) / 1000);
+
+      if (secondsLeft < 0) secondsLeft = 0;
+
+      const h = String(Math.floor(secondsLeft / 3600)).padStart(2, '0');
+      const m = String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, '0');
+      const s = String(secondsLeft % 60).padStart(2, '0');
+
+      timerEl.textContent = `${h}:${m}:${s}`;
+
+      if (secondsLeft > 0) {
+        setTimeout(updateTimer, 1000);
+      } else {
+        document.querySelector('.countdown').textContent = "✅ Serwer już powinien być online!";
+      }
+    }
+
+    updateTimer();
+  </script>
+</body>
+</html>
